@@ -1,0 +1,10 @@
+app:
+  port: 3333
+
+db:
+  driver: "postgres"
+  host: "127.0.0.1"
+  port: 5432
+  username: kofkuiper
+  password: p@ssword
+  database: db-uat

@@ -2,11 +2,31 @@ version: '2'
 
 services:
 
-  go-api-db:
+  echo-api:
     image: postgres
-    container_name: go-api-db
+    container_name: echo-api
     ports:
       - 5432:5432
+    environment:
+      POSTGRES_USER: kofkuiper
+      POSTGRES_PASSWORD: p@assword
+      POSTGRES_DB: db-uat
+
+  fiber-api:
+    image: postgres
+    container_name: fiber-api
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: kofkuiper
+      POSTGRES_PASSWORD: p@assword
+      POSTGRES_DB: db-uat
+
+  gin-api:
+    image: postgres
+    container_name: gin-api
+    ports:
+      - 5434:5432
     environment:
       POSTGRES_USER: kofkuiper
       POSTGRES_PASSWORD: p@assword
