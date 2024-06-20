@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/google/uuid"
 	"github.com/kofkuiper/echo-api/repositories"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -21,10 +22,16 @@ func (a accountService) SignUp(request SignUpRequest) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), 10)
+	if err != nil {
+		return nil, err
+	}
+
 	account, err := a.accountRepo.Create(repositories.Account{
 		ID:       id.String(),
 		Username: request.Username,
-		Password: request.Password,
+		Password: string(password),
 	})
 	if err != nil {
 		return nil, err
