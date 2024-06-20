@@ -6,5 +6,5 @@ db:
   host: "127.0.0.1"
   port: 5432
   username: kofkuiper
-  password: p@ssword
+  password: p@assword
   database: db-uat
