@@ -8,3 +8,7 @@ db:
   username: kofkuiper
   password: p@assword
   database: db-uat
+
+jwt:
+  secret: "abcdef"
+  timeout: "24h"

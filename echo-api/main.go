@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kofkuiper/echo-api/config"
 	"github.com/kofkuiper/echo-api/handlers"
 	"github.com/kofkuiper/echo-api/repositories"
 	"github.com/kofkuiper/echo-api/services"
@@ -17,10 +18,11 @@ import (
 
 func main() {
 	initConfig()
-	db := initDB()
+	cfg := config.ReadConfig()
+	db := initDB(cfg.Db)
 
 	accountRepo := repositories.NewAccountRepository(db)
-	accountSrv := services.NewAccountService(accountRepo)
+	accountSrv := services.NewAccountService(cfg, accountRepo)
 	accountHlr := handlers.NewAccountHandler(accountSrv)
 
 	e := echo.New()
@@ -28,7 +30,9 @@ func main() {
 		return c.String(http.StatusOK, "Go Echo API")
 	})
 	e.POST("/signup", accountHlr.SignUp)
-	e.Logger.Fatal(e.Start(":3000"))
+	e.POST("/login", accountHlr.Login)
+	e.POST("/validate", accountHlr.Validate)
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.App.Port)))
 }
 
 func initConfig() {
@@ -44,13 +48,13 @@ func initConfig() {
 	}
 }
 
-func initDB() *gorm.DB {
+func initDB(cfg config.DB) *gorm.DB {
 	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable TimeZone=Asia/Bangkok",
-		viper.GetString("db.host"),
-		viper.GetString("db.username"),
-		viper.GetString("db.password"),
-		viper.GetString("db.database"),
-		viper.GetInt("db.port"),
+		cfg.Host,
+		cfg.Username,
+		cfg.Password,
+		cfg.DataBase,
+		cfg.Port,
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
