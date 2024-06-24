@@ -72,7 +72,7 @@ func (a accountService) Login(request LoginRequest) (string, error) {
 
 // Validate implements AccountService.
 func (a accountService) Validate(token string) (*JwtClaims, error) {
-	claims, err := validateJwtToken(token, a.cfg.JwtCfg.Secret)
+	claims, err := ValidateJwtToken(token, a.cfg.JwtCfg.Secret)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func createJwtToken(username, userId string, jwtCfg config.JwtConfig) (string, e
 	return token, nil
 }
 
-func validateJwtToken(tokenString, jwtSecretKey string) (*JwtClaims, error) {
+func ValidateJwtToken(tokenString, jwtSecretKey string) (*JwtClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtSecretKey), nil
 	})
