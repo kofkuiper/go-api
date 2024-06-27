@@ -8,9 +8,10 @@ import (
 
 type (
 	Config struct {
-		App    App
-		Db     DB
-		JwtCfg JwtConfig
+		App        App
+		Db         DB
+		JwtCfg     JwtConfig
+		BlockChain BlockChain
 	}
 
 	App struct {
@@ -30,6 +31,12 @@ type (
 		Secret  string
 		Timeout time.Duration
 	}
+
+	BlockChain struct {
+		ChainID       int
+		RpcUrl        string
+		BlockExplorer string
+	}
 )
 
 func ReadConfig() Config {
@@ -48,6 +55,11 @@ func ReadConfig() Config {
 		JwtCfg: JwtConfig{
 			Secret:  viper.GetString("jwt.secret"),
 			Timeout: readJwtTimeout(),
+		},
+		BlockChain: BlockChain{
+			ChainID:       viper.GetInt("chain.id"),
+			RpcUrl:        viper.GetString("chain.rpc"),
+			BlockExplorer: viper.GetString("chain.blockExplorer"),
 		},
 	}
 }

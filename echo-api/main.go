@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/kofkuiper/echo-api/config"
 	"github.com/kofkuiper/echo-api/handlers"
 	"github.com/kofkuiper/echo-api/repositories"
@@ -21,6 +23,7 @@ func main() {
 	initConfig()
 	cfg := config.ReadConfig()
 	db := initDB(cfg.Db)
+	ConnectChain(cfg.BlockChain)
 
 	accountRepo := repositories.NewAccountRepository(db)
 	accountSrv := services.NewAccountService(cfg, accountRepo)
@@ -109,4 +112,14 @@ func initDB(cfg config.DB) *gorm.DB {
 	}
 	fmt.Println("Connected to Postgres database")
 	return db
+}
+
+func ConnectChain(cfg config.BlockChain) *ethclient.Client {
+	client, err := ethclient.Dial(cfg.RpcUrl)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	fmt.Println("Chain connected...")
+	return client
 }
