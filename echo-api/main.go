@@ -23,12 +23,13 @@ func main() {
 	initConfig()
 	cfg := config.ReadConfig()
 	db := initDB(cfg.Db)
-	ConnectChain(cfg.BlockChain)
+	chain := connectChain(cfg.BlockChain)
 
 	accountRepo := repositories.NewAccountRepository(db)
 	accountSrv := services.NewAccountService(cfg, accountRepo)
 	accountHlr := handlers.NewAccountHandler(accountSrv)
-
+	plutoSrv := services.NewPlutoService(*chain)
+	plutoHlr := handlers.NewPlutoHandler(plutoSrv)
 	e := echo.New()
 
 	// Cors
@@ -54,6 +55,7 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Go Echo API")
 	})
+	e.GET("/chain", plutoHlr.Info)
 
 	e.POST("/signup", accountHlr.SignUp)
 	e.POST("/login", accountHlr.Login)
@@ -114,12 +116,12 @@ func initDB(cfg config.DB) *gorm.DB {
 	return db
 }
 
-func ConnectChain(cfg config.BlockChain) *ethclient.Client {
+func connectChain(cfg config.BlockChain) *ethclient.Client {
 	client, err := ethclient.Dial(cfg.RpcUrl)
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
-	fmt.Println("Chain connected...")
+	fmt.Println("Connected to chain")
 	return client
 }
