@@ -56,7 +56,7 @@ func main() {
 		return c.String(http.StatusOK, "Go Echo API")
 	})
 	e.GET("/chain", plutoHlr.Info)
-
+	e.GET("/eth/:walletAddress", plutoHlr.BalanceOf)
 	e.POST("/signup", accountHlr.SignUp)
 	e.POST("/login", accountHlr.Login)
 
