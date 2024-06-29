@@ -14,6 +14,6 @@ type (
 	}
 
 	EthBalance struct {
-		WalletAddress string `json:"walletAddress" validate:"required,len=42"`
+		WalletAddress string `json:"walletAddress" validate:"required,len=42,eth_addr"`
 	}
 )
