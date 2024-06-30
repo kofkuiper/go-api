@@ -5,7 +5,8 @@ import "math/big"
 type (
 	PlutoService interface {
 		ChainInfo() (*ChainInfo, error)
-		BalanceOf(string) (*big.Float, error)
+		EthBalanceOf(string) (*big.Float, error)
+		BalanceOf(string) (*float64, error)
 	}
 
 	ChainInfo struct {

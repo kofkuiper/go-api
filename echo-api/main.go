@@ -24,11 +24,13 @@ func main() {
 	cfg := config.ReadConfig()
 	db := initDB(cfg.Db)
 	chain := connectChain(cfg.BlockChain)
+	plutoAddress := "0xD7db2dE52e0037e467f340E287e97B3DD3198ddD"
 
 	accountRepo := repositories.NewAccountRepository(db)
 	accountSrv := services.NewAccountService(cfg, accountRepo)
 	accountHlr := handlers.NewAccountHandler(accountSrv)
-	plutoSrv := services.NewPlutoService(*chain)
+	plutoRepo := repositories.NewPlutoRepoContract(plutoAddress, chain)
+	plutoSrv := services.NewPlutoService(*chain, plutoRepo)
 	plutoHlr := handlers.NewPlutoHandler(plutoSrv)
 	e := echo.New()
 
@@ -56,7 +58,8 @@ func main() {
 		return c.String(http.StatusOK, "Go Echo API")
 	})
 	e.GET("/chain", plutoHlr.Info)
-	e.GET("/eth/:walletAddress", plutoHlr.BalanceOf)
+	e.GET("/eth/:walletAddress", plutoHlr.EthBalanceOf)
+	e.GET("/pluto/:walletAddress", plutoHlr.BalanceOf)
 	e.POST("/signup", accountHlr.SignUp)
 	e.POST("/login", accountHlr.Login)
 

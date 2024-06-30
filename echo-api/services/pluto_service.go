@@ -5,18 +5,21 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/kofkuiper/echo-api/repositories"
 )
 
 type (
 	plutoService struct {
 		chainClient ethclient.Client
+		plutoRepo   repositories.PlutoRepositoryContract
 	}
 )
 
-func NewPlutoService(chainClient ethclient.Client) PlutoService {
-	return plutoService{chainClient: chainClient}
+func NewPlutoService(chainClient ethclient.Client, plutoRepo repositories.PlutoRepositoryContract) PlutoService {
+	return plutoService{chainClient, plutoRepo}
 }
 
 // ChainInfo implements PlutoService.
@@ -35,8 +38,8 @@ func (p plutoService) ChainInfo() (*ChainInfo, error) {
 	}, nil
 }
 
-// BalanceOf implements PlutoService.
-func (p plutoService) BalanceOf(walletAddress string) (*big.Float, error) {
+// EthBalanceOf implements PlutoService.
+func (p plutoService) EthBalanceOf(walletAddress string) (*big.Float, error) {
 	account := common.HexToAddress(walletAddress)
 	wei, err := p.chainClient.BalanceAt(context.Background(), account, nil)
 	if err != nil {
@@ -44,6 +47,22 @@ func (p plutoService) BalanceOf(walletAddress string) (*big.Float, error) {
 	}
 	eth := formatEther(wei)
 	return eth, nil
+}
+
+func (p plutoService) BalanceOf(walletAddress string) (*float64, error) {
+	account := common.HexToAddress(walletAddress)
+	instance, err := p.plutoRepo.Instance()
+	if err != nil {
+		return nil, err
+	}
+
+	wei, err := instance.BalanceOf(&bind.CallOpts{}, account)
+	if err != nil {
+		return nil, err
+	}
+	eth := formatEther(wei)
+	balance, _ := eth.Float64()
+	return &balance, nil
 }
 
 func formatEther(value *big.Int) *big.Float {
