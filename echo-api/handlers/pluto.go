@@ -50,3 +50,28 @@ func (p plutoHandler) BalanceOf(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, echo.Map{"eth": eth})
 }
+
+func (p plutoHandler) Transfer(c echo.Context) error {
+	body := new(services.TransferReq)
+	if err := c.Bind(body); err != nil {
+		return err
+	}
+
+	errors := services.Validate(body)
+	if errors != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"errors": errors})
+	}
+
+	ok := services.ValidDecimalsPlace(18, body.Value)
+	if !ok {
+		errors := []map[string]string{
+			{"field": "value", "msg": "decimals length should equal or less than 18"},
+		}
+		return c.JSON(http.StatusBadRequest, echo.Map{"errors": errors})
+	}
+	transactionHash, err := p.plutoSrv.Transfer(body.Value, body.To)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	return c.JSON(http.StatusOK, echo.Map{"transactionHash": transactionHash})
+}

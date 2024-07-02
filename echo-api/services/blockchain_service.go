@@ -1,12 +1,16 @@
 package services
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math"
 	"math/big"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // Wei to Ether (float64)
@@ -21,13 +25,21 @@ func FormatEther(wei *big.Int) (*float64, error) {
 }
 
 // Ether to Wei (Big Float)
-func ParseEther(value string) (*big.Float, error) {
-	bf, ok := new(big.Float).SetString(value)
-	if !ok {
-		return nil, fmt.Errorf("can not convert %s to big.Float", value)
-	}
-	wei := new(big.Float).Mul(bf, big.NewFloat(math.Pow10(18)))
-	return wei, nil
+func ParseEther(value float64) *big.Int {
+	// float64 to big float
+	bf := new(big.Float)
+	bf.SetFloat64(value)
+
+	// set decimals (10^18)
+	decimals := new(big.Float)
+	decimals.SetInt(big.NewInt(int64(math.Pow10(18))))
+	// eth to wei
+	bf.Mul(bf, decimals)
+
+	// big float to big int
+	result := new(big.Int)
+	bf.Int(result)
+	return result
 }
 
 // Int to Big Int
@@ -45,4 +57,31 @@ func PraseAddress(address string) common.Address {
 	address = strings.TrimSpace(address)
 	address = strings.ToLower(address)
 	return common.HexToAddress(address)
+}
+
+// Private key (HexKey without `0x`) to Transactor
+func PrivateToAccount(hexKey string, chainID *big.Int) (*bind.TransactOpts, error) {
+	privateKey, err := crypto.HexToECDSA(hexKey)
+	if err != nil {
+		return nil, err
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	return auth, err
+}
+
+// Private key (HexKey without `0x`) to Public key
+func PrivateKeyToAddress(hexKey string) (*common.Address, error) {
+	privateKey, err := crypto.HexToECDSA(hexKey)
+	if err != nil {
+		return nil, err
+	}
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, errors.New("error casting public key to ECDSA")
+	}
+
+	address := crypto.PubkeyToAddress(*publicKeyECDSA)
+	return &address, nil
 }

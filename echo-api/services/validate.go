@@ -2,6 +2,7 @@ package services
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -36,4 +37,33 @@ func msgForTag(tag string) string {
 	}
 	return "This field is invalid"
 
+}
+
+/*
+Check this floating value have the right decimals
+
+expect: decimal length that value should equal or less than
+
+value: floating value
+*/
+func ValidDecimalsPlace(expect int, value float64) bool {
+	actual := countDecimalPlaces(value)
+	return actual <= expect
+}
+
+func countDecimalPlaces(num float64) int {
+	// Convert float64 to string
+	// ref: https://stackoverflow.com/a/76780465
+	str := strconv.FormatFloat(num, 'E', -1, 64)
+
+	// Split the string by decimal point
+	parts := strings.Split(str, ".")
+
+	// If there are two parts, count the length of the second part
+	if len(parts) == 2 {
+		return len(parts[1])
+	}
+
+	// Otherwise, there are no decimal places
+	return 0
 }

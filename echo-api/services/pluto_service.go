@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -66,4 +67,50 @@ func (p plutoService) BalanceOf(walletAddress string) (*float64, error) {
 		return nil, err
 	}
 	return eth, nil
+}
+
+// Transfer implements PlutoService.
+func (p plutoService) Transfer(value float64, to string) (*string, error) {
+	bValue := ParseEther(value)
+	toAddress := PraseAddress(to)
+
+	// convert private key to transactor
+	hexKey := "57026c312a291b6308625bf6b729de5a846c4e97be6d7f537a586ff75c5b9fb9"
+	chainID, err := p.chainClient.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	auth, err := PrivateToAccount(hexKey, chainID)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := PrivateKeyToAddress(hexKey)
+	if err != nil {
+		return nil, err
+	}
+	// Setup nonce, gas price
+	nonce, err := p.chainClient.PendingNonceAt(context.Background(), *publicKey)
+	if err != nil {
+		return nil, err
+	}
+	gasPrice, err := p.chainClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0)
+	auth.GasLimit = uint64(200000)
+	auth.GasPrice = gasPrice
+
+	// Transfer
+	instance, err := p.plutoRepo.Instance()
+	if err != nil {
+		return nil, err
+	}
+	tx, err := instance.Transfer(auth, toAddress, bValue)
+	if err != nil {
+		return nil, err
+	}
+	transactionHash := tx.Hash().Hex()
+	return &transactionHash, nil
 }

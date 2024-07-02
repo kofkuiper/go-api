@@ -5,6 +5,7 @@ type (
 		ChainInfo() (*ChainInfo, error)
 		EthBalanceOf(string) (*float64, error)
 		BalanceOf(string) (*float64, error)
+		Transfer(float64, string) (*string, error)
 	}
 
 	ChainInfo struct {
@@ -14,5 +15,10 @@ type (
 
 	EthBalance struct {
 		WalletAddress string `json:"walletAddress" validate:"required,len=42,eth_addr"`
+	}
+
+	TransferReq struct {
+		Value float64 `json:"value" validate:"required"`
+		To    string  `json:"to" validate:"required,len=42,eth_addr"`
 	}
 )
