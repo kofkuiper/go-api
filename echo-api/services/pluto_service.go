@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -39,13 +41,16 @@ func (p plutoService) ChainInfo() (*ChainInfo, error) {
 }
 
 // EthBalanceOf implements PlutoService.
-func (p plutoService) EthBalanceOf(walletAddress string) (*big.Float, error) {
+func (p plutoService) EthBalanceOf(walletAddress string) (*float64, error) {
 	account := common.HexToAddress(walletAddress)
 	wei, err := p.chainClient.BalanceAt(context.Background(), account, nil)
 	if err != nil {
 		return nil, err
 	}
-	eth := formatEther(wei)
+	eth, err := FormatEther(wei)
+	if err != nil {
+		return nil, err
+	}
 	return eth, nil
 }
 
@@ -60,13 +65,41 @@ func (p plutoService) BalanceOf(walletAddress string) (*float64, error) {
 	if err != nil {
 		return nil, err
 	}
-	eth := formatEther(wei)
-	balance, _ := eth.Float64()
+	eth, err := FormatEther(wei)
+	if err != nil {
+		return nil, err
+	}
+	return eth, nil
+}
+
+// Wei to Ether (float64)
+func FormatEther(wei *big.Int) (*float64, error) {
+	bfWei, ok := new(big.Float).SetString(wei.String()) // Big Float Wei
+	if !ok {
+		return nil, fmt.Errorf("can not convert %v to big.Float", wei)
+	}
+	bfEth := new(big.Float).Quo(bfWei, big.NewFloat(math.Pow10(18))) // Big Float Ether, divided by Big Float of (10 ^ 18 )
+	balance, _ := bfEth.Float64()
 	return &balance, nil
 }
 
-func formatEther(value *big.Int) *big.Float {
-	fBalance := new(big.Float)
-	fBalance.SetString(value.String())
-	return new(big.Float).Quo(fBalance, big.NewFloat(math.Pow10(18)))
+// Ether to Wei (Big Float)
+func ParseEther(value string) (*big.Float, error) {
+	bf, ok := new(big.Float).SetString(value)
+	if !ok {
+		return nil, fmt.Errorf("can not convert %s to big.Float", value)
+	}
+	wei := new(big.Float).Mul(bf, big.NewFloat(math.Pow10(18)))
+	return wei, nil
+}
+
+// Int to Big Int
+func BigInt(value int64) *big.Int {
+	return big.NewInt(value)
+}
+
+func PraseAddress(address string) common.Address {
+	address = strings.TrimSpace(address)
+	address = strings.ToLower(address)
+	return common.HexToAddress(address)
 }

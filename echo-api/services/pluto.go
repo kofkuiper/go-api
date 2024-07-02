@@ -1,11 +1,9 @@
 package services
 
-import "math/big"
-
 type (
 	PlutoService interface {
 		ChainInfo() (*ChainInfo, error)
-		EthBalanceOf(string) (*big.Float, error)
+		EthBalanceOf(string) (*float64, error)
 		BalanceOf(string) (*float64, error)
 	}
 
