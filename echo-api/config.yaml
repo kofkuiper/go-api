@@ -12,3 +12,8 @@ db:
 jwt:
   secret: "abcdef"
   timeout: "24h"
+
+chain:
+  id: 16888
+  rpc: "https://testnet-rpc.ivarex.com"
+  blockExplorer: "https://testnet-scan.ivarscan.com"
