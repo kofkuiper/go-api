@@ -61,6 +61,7 @@ func main() {
 	e.GET("/eth/:walletAddress", plutoHlr.EthBalanceOf)
 	e.GET("/pluto/:walletAddress", plutoHlr.BalanceOf)
 	e.POST("/pluto/transfer", plutoHlr.Transfer)
+	e.POST("/pluto/transferEth", plutoHlr.TransferEth)
 	e.POST("/signup", accountHlr.SignUp)
 	e.POST("/login", accountHlr.Login)
 

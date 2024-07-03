@@ -6,6 +6,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/kofkuiper/echo-api/repositories"
 )
@@ -113,4 +115,52 @@ func (p plutoService) Transfer(value float64, to string) (*string, error) {
 	}
 	transactionHash := tx.Hash().Hex()
 	return &transactionHash, nil
+}
+
+// TransferEth implements PlutoService.
+func (p plutoService) TransferEth(value float64, to string) (*string, error) {
+	amount := ParseEther(value)
+	toAddress := PraseAddress(to)
+
+	hexKey := "57026c312a291b6308625bf6b729de5a846c4e97be6d7f537a586ff75c5b9fb9"
+	privateKey, err := crypto.HexToECDSA(hexKey)
+	if err != nil {
+		return nil, err
+	}
+
+	publicKey, err := PrivateKeyToAddress(hexKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Setup nonce, gas price
+	nonce, err := p.chainClient.PendingNonceAt(context.Background(), *publicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	gasPrice, err := p.chainClient.SuggestGasPrice(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	chainID, err := p.chainClient.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	gasLimit := uint64(200000)
+	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, nil)
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.chainClient.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		return nil, err
+	}
+
+	txHash := signedTx.Hash().Hex()
+	return &txHash, nil
 }
