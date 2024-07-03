@@ -2,11 +2,18 @@ package services
 
 type (
 	PlutoService interface {
+		Info() (*Info, error)
 		ChainInfo() (*ChainInfo, error)
 		EthBalanceOf(string) (*float64, error)
 		BalanceOf(string) (*float64, error)
 		Transfer(float64, string) (*string, error)
 		TransferEth(float64, string) (*string, error)
+	}
+
+	Info struct {
+		Name     string
+		Symbol   string
+		Decimals uint8
 	}
 
 	ChainInfo struct {

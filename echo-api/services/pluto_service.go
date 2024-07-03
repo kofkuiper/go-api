@@ -164,3 +164,28 @@ func (p plutoService) TransferEth(value float64, to string) (*string, error) {
 	txHash := signedTx.Hash().Hex()
 	return &txHash, nil
 }
+
+// Info implements PlutoService.
+func (p plutoService) Info() (*Info, error) {
+	instance, err := p.plutoRepo.Instance()
+	if err != nil {
+		return nil, err
+	}
+	decimals, err := instance.Decimals(&bind.CallOpts{})
+	if err != nil {
+		return nil, err
+	}
+	name, err := instance.Name(&bind.CallOpts{})
+	if err != nil {
+		return nil, err
+	}
+	symbol, err := instance.Symbol(&bind.CallOpts{})
+	if err != nil {
+		return nil, err
+	}
+	return &Info{
+		Name:     name,
+		Symbol:   symbol,
+		Decimals: decimals,
+	}, nil
+}

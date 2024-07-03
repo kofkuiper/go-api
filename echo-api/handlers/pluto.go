@@ -15,7 +15,7 @@ func NewPlutoHandler(plutoSrv services.PlutoService) plutoHandler {
 	return plutoHandler{plutoSrv}
 }
 
-func (p plutoHandler) Info(c echo.Context) error {
+func (p plutoHandler) ChainInfo(c echo.Context) error {
 	info, err := p.plutoSrv.ChainInfo()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -99,4 +99,12 @@ func (p plutoHandler) TransferEth(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, echo.Map{"transactionHash": transactionHash})
+}
+
+func (p plutoHandler) Info(c echo.Context) error {
+	info, err := p.plutoSrv.Info()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	return c.JSON(http.StatusOK, echo.Map{"info": info})
 }

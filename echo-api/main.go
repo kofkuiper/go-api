@@ -57,11 +57,12 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Go Echo API")
 	})
-	e.GET("/chain", plutoHlr.Info)
+	e.GET("/chain", plutoHlr.ChainInfo)
 	e.GET("/eth/:walletAddress", plutoHlr.EthBalanceOf)
 	e.GET("/pluto/:walletAddress", plutoHlr.BalanceOf)
 	e.POST("/pluto/transfer", plutoHlr.Transfer)
 	e.POST("/pluto/transferEth", plutoHlr.TransferEth)
+	e.GET("/pluto", plutoHlr.Info)
 	e.POST("/signup", accountHlr.SignUp)
 	e.POST("/login", accountHlr.Login)
 
